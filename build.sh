@@ -10,6 +10,6 @@ flutter doctor -v
 
 echo "Building web project..."
 flutter clean
-flutter build web --release --web-renderer canvaskit
+flutter build web --release
 
 echo "Build accomplished!"
