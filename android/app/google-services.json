@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "224150240249",
+    "firebase_url": "https://myappconsi-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "myappconsi",
+    "storage_bucket": "myappconsi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:224150240249:android:86b291cd72cf1606ec1b28",
+        "android_client_info": {
+          "package_name": "com.example.roi_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "224150240249-edpp85q0a84tvak2gd9fi19s4kad8eq8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7dmpvUQPtVCsXn4g2DNGbNWIooAbeSTQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "224150240249-edpp85q0a84tvak2gd9fi19s4kad8eq8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
