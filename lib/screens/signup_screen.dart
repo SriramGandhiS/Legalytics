@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 import 'package:get/route_manager.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:login_signup/screens/signin_screen.dart';
 import 'package:login_signup/screens/wrapper.dart';
 import 'package:login_signup/theme/theme.dart';
@@ -79,32 +79,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
       errorMessage = '';
     });
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn(
-        clientId: '96069188364-fe6ql96b4h15nni8fhi9jcuf0ofio6qc.apps.googleusercontent.com',
-      ).signIn();
-      if (googleUser != null) {
-        final GoogleSignInAuthentication? googleAuth =
-            await googleUser.authentication;
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth?.accessToken,
-          idToken: googleAuth?.idToken,
-        );
-        UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-        
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      googleProvider.addScope('email');
+      UserCredential userCredential;
+      if (kIsWeb) {
+        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      } else {
+        userCredential = await FirebaseAuth.instance.signInWithProvider(googleProvider);
+      }
+      if (userCredential.user != null) {
         // Initialize quiz progress data in Firestore if new user
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).get();
-        if (!userDoc.exists) {
-           await FirebaseFirestore.instance
+        final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredential.user?.uid)
-            .set({
-          'username': userCredential.user?.displayName ?? 'New User',
-          'email': userCredential.user?.email ?? '',
-          'easyQuizzesCompleted': 0,
-          'hardQuizzesCompleted': 0,
-          'totalQuizzesCompleted': 0,
-          'level': 'beginner',
-        });
+            .get();
+        if (!userDoc.exists) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userCredential.user?.uid)
+              .set({
+            'username': userCredential.user?.displayName ?? 'New User',
+            'email': userCredential.user?.email ?? '',
+            'easyQuizzesCompleted': 0,
+            'hardQuizzesCompleted': 0,
+            'totalQuizzesCompleted': 0,
+            'level': 'beginner',
+          });
         }
         Get.offAll(() => Wrapper());
       }

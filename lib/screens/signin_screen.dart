@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:icons_plus/icons_plus.dart';
 import 'package:login_signup/screens/forget_passsword_screen.dart';
 import 'package:login_signup/screens/signup_screen.dart';
@@ -62,17 +62,15 @@ class _SignInScreenState extends State<SignInScreen> {
       errorMessage = '';
     });
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn(
-        clientId: '96069188364-fe6ql96b4h15nni8fhi9jcuf0ofio6qc.apps.googleusercontent.com'
-      ).signIn();
-      if (googleUser != null) {
-        final GoogleSignInAuthentication? googleAuth =
-            await googleUser.authentication;
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth?.accessToken,
-          idToken: googleAuth?.idToken,
-        );
-        await FirebaseAuth.instance.signInWithCredential(credential);
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      googleProvider.addScope('email');
+      UserCredential userCredential;
+      if (kIsWeb) {
+        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      } else {
+        userCredential = await FirebaseAuth.instance.signInWithProvider(googleProvider);
+      }
+      if (userCredential.user != null) {
         Get.offAll(() => Wrapper());
       }
     } catch (e) {
