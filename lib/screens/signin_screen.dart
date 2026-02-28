@@ -57,14 +57,32 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   login() async {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-    await FirebaseAuth.instance.signInWithCredential(credential);
+    setState(() {
+      isloading = true;
+      errorMessage = '';
+    });
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn(
+        clientId: '96069188364-fe6ql96b4h15nni8fhi9jcuf0ofio6qc.apps.googleusercontent.com'
+      ).signIn();
+      if (googleUser != null) {
+        final GoogleSignInAuthentication? googleAuth =
+            await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
+        );
+        await FirebaseAuth.instance.signInWithCredential(credential);
+        Get.offAll(() => Wrapper());
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Google Sign-In failed: ${e.toString()}';
+      });
+    }
+    setState(() {
+      isloading = false;
+    });
   }
 
   final _formSignInKey = GlobalKey<FormState>();
@@ -303,10 +321,10 @@ class _SignInScreenState extends State<SignInScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                /*ElevatedButton(
+                                ElevatedButton(
                                   onPressed: (() => login()),
                                   child: Logo(Logos.google),
-                                )*/
+                                )
                               ],
                             ),
                             const SizedBox(

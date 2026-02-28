@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 import 'package:get/route_manager.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:login_signup/screens/signin_screen.dart';
 import 'package:login_signup/screens/wrapper.dart';
 import 'package:login_signup/theme/theme.dart';
@@ -65,15 +66,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
         setState(() {
           errorMessage = errorMsg;
         });
-      } catch (e) {
-        setState(() {
-          errorMessage = 'An error occurred: ${e.toString()}';
-        });
       }
       setState(() {
         isloading = false;
       });
     }
+  }
+
+  login() async {
+    setState(() {
+      isloading = true;
+      errorMessage = '';
+    });
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn(
+        clientId: '96069188364-fe6ql96b4h15nni8fhi9jcuf0ofio6qc.apps.googleusercontent.com',
+      ).signIn();
+      if (googleUser != null) {
+        final GoogleSignInAuthentication? googleAuth =
+            await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
+        );
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+        
+        // Initialize quiz progress data in Firestore if new user
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).get();
+        if (!userDoc.exists) {
+           await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user?.uid)
+            .set({
+          'username': userCredential.user?.displayName ?? 'New User',
+          'email': userCredential.user?.email ?? '',
+          'easyQuizzesCompleted': 0,
+          'hardQuizzesCompleted': 0,
+          'totalQuizzesCompleted': 0,
+          'level': 'beginner',
+        });
+        }
+        Get.offAll(() => Wrapper());
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Google Sign-In failed: ${e.toString()}';
+      });
+    }
+    setState(() {
+      isloading = false;
+    });
   }
 
   @override
@@ -271,10 +313,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          /*Logo(Logos.facebook_f),
-                          Logo(Logos.twitter),
-                          Logo(Logos.google),
-                          Logo(Logos.apple),*/
+                          ElevatedButton(
+                             onPressed: (() => login()),
+                             child: Logo(Logos.google),
+                          )
                         ],
                       ),
                       const SizedBox(
